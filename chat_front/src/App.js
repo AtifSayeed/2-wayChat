@@ -7,39 +7,49 @@ const socket = io.connect("http://localhost:3001");
 
 function App() {
   const [username, setUsername] = useState("");
-  const [room, setRoom] = useState("");
+  const [socketId, setSocketId] = useState("");
   const [showChat, setShowChat] = useState(false);
+  const [admin, setAdmin] = useState(false);
 
-  const joinRoom = () => {
-    if (username !== "" && room !== "") {
-      socket.emit("join_room", room);
+  const joinPrivateChat = async () => {
+    if (username !== "") {
+      let data = await socket.emit("join_private_chat");
+      //console.log(data.id);
+      setSocketId(data.id);
       setShowChat(true);
     }
+  };
+
+  const joinAsAdmin = () => {
+    socket.emit("join_admin_chat");
+    setShowChat(true);
+    setAdmin(true);
   };
 
   return (
     <div className="App">
       {!showChat ? (
         <div className="joinChatContainer">
-          <h3>Join A Chat</h3>
+          <h3>Join A Private Chat</h3>
           <input
             type="text"
-            placeholder="John..."
+            placeholder="Your Name..."
             onChange={(event) => {
               setUsername(event.target.value);
             }}
           />
-          <input
-            type="text"
-            placeholder="Room ID..."
-            onChange={(event) => {
-              setRoom(event.target.value);
-            }}
-          />
-          <button onClick={joinRoom}>Join A Room</button>
+
+          <button onClick={joinPrivateChat}>Join Private Chat</button>
+          <h1>OR</h1>
+          <button onClick={joinAsAdmin}>Join as Admin </button>
         </div>
       ) : (
-        <Chat socket={socket} username={username} room={room} />
+        <Chat
+          socket={socket}
+          username={username}
+          userId={socketId}
+          admin={admin}
+        />
       )}
     </div>
   );
