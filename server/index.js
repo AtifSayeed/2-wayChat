@@ -14,20 +14,35 @@ const io = new Server(server, {
   },
 });
 
+const users = {}; // Store user information
+
 io.on("connection", (socket) => {
   console.log(`User Connected: ${socket.id}`);
 
-  socket.on("join_room", (data) => {
-    socket.join(data);
-    console.log(`User with ID: ${socket.id} joined room: ${data}`);
+  socket.on("join_private_chat", (userId) => {
+    users[userId] = socket.id;
+    console.log(
+      `User with ID: ${socket.id} joined private chat with user ID: ${userId}`
+    );
   });
 
-  socket.on("send_message", (data) => {
-    socket.to(data.room).emit("receive_message", data);
+  socket.on("send_private_message", (data) => {
+    const recipientSocketId = users[data.recipientId];
+    if (recipientSocketId) {
+      io.to(recipientSocketId).emit("receive_private_message", data);
+    } else {
+      // Handle case when recipient is not connected
+      console.log(`User with ID ${data.recipientId} is not connected.`);
+    }
   });
 
   socket.on("disconnect", () => {
-    console.log("User Disconnected", socket.id);
+    // Remove user information on disconnect
+    const userId = Object.keys(users).find((key) => users[key] === socket.id);
+    if (userId) {
+      console.log(`User with ID: ${userId} disconnected`);
+      delete users[userId];
+    }
   });
 });
 
