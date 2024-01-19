@@ -45,7 +45,7 @@ io.on("connection", (socket) => {
     if (recipientSocketId) {
       io.to(recipientSocketId).emit("receive_private_message", data);
     } else {
-      // Handle case when recipient is not connected
+      // Handle case when recipient is not c onnected
       console.log(`User with ID ${data.recipientId} is not connected.`);
     }
   });
